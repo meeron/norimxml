@@ -1,1 +1,1 @@
-from .xmldoc import XmlDoc, XmlElement
+from .xmldoc import XmlDoc, XmlElement, XmlError
