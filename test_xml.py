@@ -2,7 +2,7 @@
 
 import xml.etree.ElementTree as ET
 import pytest
-from norimxml import XmlDoc, XmlError
+from norimxml import XmlDoc, XmlError, XmlElement
 
 
 class TestXml:
@@ -34,3 +34,19 @@ class TestXml:
             with pytest.raises(XmlError) as err:
                 xml_doc = XmlDoc(name)
                 ET.fromstring(xml_doc.get_str())
+
+    def test_xml_with_children(self):
+        root_name = "Items"
+        xml_doc = XmlDoc(root_name)
+
+        xml_doc.add_child("Item1", "Item text")
+        xml_doc.add_child("Item2")
+
+        xml_doc.add_element(XmlElement("Item3"))
+
+        element4 = XmlElement("Item4")
+        element4.set_text("Item 4 text")
+        xml_doc.add_element(element4)
+
+        root = ET.fromstring(xml_doc.get_str())
+        assert root.tag == root_name
