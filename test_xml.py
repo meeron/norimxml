@@ -50,3 +50,26 @@ class TestXml:
 
         root = ET.fromstring(xml_doc.get_str())
         assert root.tag == root_name
+
+    def test_xml_nested_elements(self):
+        root_name = "Items"
+        xml_doc = XmlDoc(root_name)
+
+        element = XmlElement("Item")
+        element.add_child("id", "1")
+        element.add_child("name", "Element 1 name")
+
+        props = XmlElement("props")
+        props.add_child("prop1", "prop1 value")
+        props.add_child("prop2", "prop2 value")
+        element.add_element(props)
+
+        xml_doc.add_element(element)
+
+        element = XmlElement("Item")
+        element.add_child("id", "2")
+        element.add_child("name", "Element 2 name")
+        xml_doc.add_element(element)
+
+        root = ET.fromstring(xml_doc.get_str())
+        assert root.tag == root_name
