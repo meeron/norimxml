@@ -17,10 +17,14 @@ class XmlElement:
         self.children = []
         self.name = name
         self._text = None
+        self._cdata = None
         self._attributes = OrderedDict()
 
     def set_text(self, text):
         self._text = encode_text(text)
+
+    def set_cdata(self, value):
+        self._cdata = value
 
     def add_child(self, name, text=None):
         if not isinstance(name, str):
@@ -48,7 +52,7 @@ class XmlElement:
         if len(self._attributes) > 0:
             attributes_string = " " + attributes_string
 
-        if self._text is None and len(self.children) == 0:
+        if self._text is None and self._cdata is None and len(self.children) == 0:
             return "<{}{}/>".format(self.name, attributes_string)
 
         element_text = "<{}{}>".format(self.name, attributes_string)
@@ -57,6 +61,9 @@ class XmlElement:
 
         for child in self.children:
             element_text += child.get_str()
+
+        if self._cdata is not None:
+            element_text += "<![CDATA[{}]]>".format(self._cdata)
 
         element_text += "</{}>".format(self.name)
 

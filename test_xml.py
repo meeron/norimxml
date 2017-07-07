@@ -122,3 +122,15 @@ class TestXml:
 
         root = ET.fromstring(xml_doc.get_str())
         assert root.tag == root_name
+
+    def test_cdata(self):
+        root_name = "Items"
+        xml_doc = XmlDoc(root_name)
+
+        xml_doc.set_text("Some text")
+        xml_doc.set_cdata("This is test & <thi>")
+        xml_doc.add_child("Item", "some text")
+
+        root = ET.fromstring(xml_doc.get_str())
+        assert root.tag == root_name
+
