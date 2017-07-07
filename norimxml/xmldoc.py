@@ -2,6 +2,7 @@
 
 import re
 from collections import OrderedDict
+from io import BytesIO
 
 
 class XmlError(Exception):
@@ -44,7 +45,7 @@ class XmlElement:
         validate_name('attribute', name)
         self._attributes[name] = encode_text(value)
 
-    def get_str(self):
+    def write(self, buffer):
         attributes = []
         for key in self._attributes:
             attributes.append('{}="{}"'.format(key, self._attributes[key]))
@@ -53,21 +54,20 @@ class XmlElement:
             attributes_string = " " + attributes_string
 
         if self._text is None and self._cdata is None and len(self.children) == 0:
-            return "<{}{}/>".format(self.name, attributes_string)
+            write(buffer, "<{}{}/>".format(self.name, attributes_string))
+        else:
+            write(buffer, "<{}{}>".format(self.name, attributes_string))
 
-        element_text = "<{}{}>".format(self.name, attributes_string)
-        if self._text is not None:
-            element_text += self._text
+            if self._text is not None:
+                write(buffer, self._text)
 
-        for child in self.children:
-            element_text += child.get_str()
+            for child in self.children:
+                child.write(buffer)
 
-        if self._cdata is not None:
-            element_text += "<![CDATA[{}]]>".format(self._cdata)
+            if self._cdata is not None:
+                write(buffer, "<![CDATA[{}]]>".format(self._cdata))
 
-        element_text += "</{}>".format(self.name)
-
-        return element_text
+            write(buffer, "</{}>".format(self.name))
 
 
 class XmlDoc(XmlElement):
@@ -79,7 +79,13 @@ class XmlDoc(XmlElement):
         super().__init__(root_name)
 
     def get_str(self):
-        return XmlDoc._DECLARATION + super().get_str()
+        with BytesIO() as buffer:
+            self.write(buffer)
+            return buffer.getvalue().decode('utf8')
+
+    def write(self, buffer):
+        write(buffer, XmlDoc._DECLARATION)
+        super().write(buffer)
 
 
 def validate_name(node_name, name):
@@ -100,3 +106,7 @@ def encode_text(text):
     text = re.sub(r"'", r'&apos;', text)
     text = re.sub(r'"', r'&quot;', text)
     return text
+
+
+def write(buffer, text):
+    buffer.write(text.encode('utf8'))
