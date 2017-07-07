@@ -1,6 +1,7 @@
 """Module implementing Xml document"""
 
 import re
+from collections import OrderedDict
 
 
 class XmlError(Exception):
@@ -12,10 +13,11 @@ class XmlElement:
     """Xml element class"""
 
     def __init__(self, name):
-        validate_element_name(name)
+        validate_name('element', name)
         self.children = []
         self.name = name
         self._text = None
+        self._attributes = OrderedDict()
 
     def set_text(self, text):
         self._text = encode_text(text)
@@ -34,11 +36,22 @@ class XmlElement:
             raise TypeError("'%s' argument is not XmlElement type")
         self.children.append(element)
 
-    def get_str(self):
-        if self._text is None and len(self.children) == 0:
-            return "<{}/>".format(self.name)
+    def add_attribute(self, name, value):
+        validate_name('attribute', name)
+        self._attributes[name] = encode_text(value)
 
-        element_text = "<{}>".format(self.name)
+    def get_str(self):
+        attributes = []
+        for key in self._attributes:
+            attributes.append('{}="{}"'.format(key, self._attributes[key]))
+        attributes_string = " ".join(attributes)
+        if len(self._attributes) > 0:
+            attributes_string = " " + attributes_string
+
+        if self._text is None and len(self.children) == 0:
+            return "<{}{}/>".format(self.name, attributes_string)
+
+        element_text = "<{}{}>".format(self.name, attributes_string)
         if self._text is not None:
             element_text += self._text
 
@@ -62,11 +75,11 @@ class XmlDoc(XmlElement):
         return XmlDoc._DECLARATION + super().get_str()
 
 
-def validate_element_name(name):
-    pattern = r'^([0-9]|xml|XML|Xml)|\s'
+def validate_name(node_name, name):
+    pattern = r'^([0-9]|xml|XML|Xml)|\s|<|>|&|\'|"'
     match = re.search(pattern, name)
     if match:
-        raise XmlError("Invalid element name: %s" % name)
+        raise XmlError("Invalid %s name: '%s'" % (node_name, name))
 
 
 def encode_text(text):

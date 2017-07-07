@@ -14,6 +14,7 @@ class TestXml:
         xml_doc.set_text("Test string")
         root = ET.fromstring(xml_doc.get_str())
         assert root.tag == root_name
+        print(xml_doc.get_str())
 
     def test_encode_string(self):
         root_name = "Items"
@@ -69,6 +70,49 @@ class TestXml:
         element = XmlElement("Item")
         element.add_child("id", "2")
         element.add_child("name", "Element 2 name")
+        xml_doc.add_element(element)
+
+        root = ET.fromstring(xml_doc.get_str())
+        assert root.tag == root_name
+
+    def test_attributes(self):
+        root_name = "Items"
+        xml_doc = XmlDoc(root_name)
+
+        element = XmlElement("Item")
+        element.add_attribute("id", "element 1")
+        element.add_attribute("name", "element name")
+        xml_doc.add_element(element)
+
+        root = ET.fromstring(xml_doc.get_str())
+        assert root.tag == root_name
+
+    def test_attribute_invalid_name(self):
+        root_name = "Items"
+        xml_doc = XmlDoc(root_name)
+
+        element = XmlElement("Item")
+        with pytest.raises(XmlError) as err1:
+            element.add_attribute("id<", "element 1")
+        with pytest.raises(XmlError) as err2:
+            element.add_attribute("id>", "element 1")
+        with pytest.raises(XmlError) as err3:
+            element.add_attribute("id&", "element 1")
+        with pytest.raises(XmlError) as err4:
+            element.add_attribute("id'", "element 1")
+        with pytest.raises(XmlError) as err5:
+            element.add_attribute("id\"", "element 1")
+        xml_doc.add_element(element)
+
+        root = ET.fromstring(xml_doc.get_str())
+        assert root.tag == root_name
+
+    def test_encoding_attribute_value(self):
+        root_name = "Items"
+        xml_doc = XmlDoc(root_name)
+
+        element = XmlElement("Item")
+        element.add_attribute("id", "<value> & 'test' and \"test\"")
         xml_doc.add_element(element)
 
         root = ET.fromstring(xml_doc.get_str())
