@@ -29,7 +29,12 @@ class TestXml:
             "123Items",
             "xmlItems",
             "XMLItems",
-            "XmlItems"
+            "XmlItems",
+            "Item<",
+            "Item>",
+            "Item&",
+            "Item'",
+            "Item\""
         ]
         for name in invalid_names:
             with pytest.raises(XmlError) as err:
