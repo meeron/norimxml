@@ -1,6 +1,8 @@
 """Testing module"""
 
 import xml.etree.ElementTree as ET
+from tempfile import TemporaryDirectory
+from os import path
 import pytest
 from norimxml import XmlDoc, XmlError, XmlElement
 
@@ -134,3 +136,18 @@ class TestXml:
         root = ET.fromstring(xml_doc.get_str())
         assert root.tag == root_name
 
+    def test_write_to_file(self):
+        root_name = "Items"
+        xml_doc = XmlDoc(root_name)
+
+        xml_doc.set_text("Some text")
+        xml_doc.set_cdata("This is test & <thi>")
+        xml_doc.add_child("Item", "some text")
+
+        with TemporaryDirectory() as temp_dir:
+            xml_file = path.join(temp_dir, 'file.xml')
+            with open(xml_file, 'w+b') as file_buffer:
+                xml_doc.write(file_buffer)
+            raw_doc = ET.parse(xml_file)
+            root = raw_doc.getroot()
+            assert root.tag == root_name
